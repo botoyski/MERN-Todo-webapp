@@ -1,0 +1,8 @@
+username: eaaspera1_db_user
+password: geilnd351qR7fKCl
+
+username: test
+password: test1234
+
+username: aisalmon_db_user
+password: salmon1234
