@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import NavbarModern from '../components/NavbarModern';
 import Sidebar from '../components/Sidebar';
 import TaskCard from '../components/TaskCard';
@@ -6,77 +7,33 @@ import SummaryCard from '../components/SummaryCard';
 import TaskModal from '../components/TaskModal';
 import { Layout, List, Filter, Search } from 'lucide-react';
 
+const API_URL = 'http://localhost:5000/api/tasks';
+
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  const [viewMode, setViewMode] = useState('list'); // 'grid' or 'list'
+  const [viewMode, setViewMode] = useState('list');
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterPriority, setFilterPriority] = useState('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editTask, setEditTask] = useState(null);
-
-  // Default task data (used if no localStorage entry)
-  const defaultTasks = [
-    {
-      id: 1,
-      title: 'Design System Update',
-      description: 'Update the color palette and typography scale for the new branding guidelines.',
-      priority: 'High',
-      status: 'In Progress',
-      dueDate: 'Oct 24'
-    },
-    {
-      id: 2,
-      title: 'Client Meeting Prep',
-      description: 'Prepare slides and demo environment for the quarterly review meeting with Acme Corp.',
-      priority: 'Medium',
-      status: 'Not Started',
-      dueDate: 'Tomorrow'
-    },
-    {
-      id: 3,
-      title: 'Update Documentation',
-      description: 'Review and update API documentation to reflect recent changes in endpoints.',
-      priority: 'Low',
-      status: 'Completed',
-      dueDate: 'Oct 20'
-    },
-    {
-      id: 4,
-      title: 'Fix Login Bug',
-      description: 'Resolve authentication issue on mobile devices.',
-      priority: 'High',
-      status: 'In Progress',
-      dueDate: 'Oct 22'
-    },
-    {
-      id: 5,
-      title: 'Database Optimization',
-      description: 'Optimize database queries for better performance.',
-      priority: 'Medium',
-      status: 'Not Started',
-      dueDate: 'Oct 28'
-    }
-  ];
-
-  const [tasks, setTasks] = useState(() => {
-    try {
-      const raw = localStorage.getItem('tasks');
-      return raw ? JSON.parse(raw) : defaultTasks;
-    } catch (e) {
-      return defaultTasks;
-    }
-  });
-
-  const [archivedTasks, setArchivedTasks] = useState(() => {
-    try {
-      const raw = localStorage.getItem('archivedTasks');
-      return raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      return [];
-    }
-  });
+  const [tasks, setTasks] = useState([]);
+  const [archivedTasks, setArchivedTasks] = useState([]);
   const [showArchived, setShowArchived] = useState(false);
+
+  // Fetch tasks from backend
+  const fetchTasks = () => {
+    axios.get(API_URL)
+      .then(res => setTasks(res.data))
+      .catch(err => console.error(err));
+    axios.get(API_URL + '?archived=true')
+      .then(res => setArchivedTasks(res.data))
+      .catch(() => setArchivedTasks([]));
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
 
   // Calculate stats
   const totalTasks = tasks.length;
@@ -87,75 +44,72 @@ const Dashboard = () => {
   // Filter tasks
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchValue.toLowerCase()) ||
-                         task.description.toLowerCase().includes(searchValue.toLowerCase());
+                         (task.description || '').toLowerCase().includes(searchValue.toLowerCase());
     const matchesStatus = filterStatus === 'All' || task.status === filterStatus;
     const matchesPriority = filterPriority === 'All' || task.priority === filterPriority;
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
-  const handleArchive = (id) => {
-    const task = tasks.find(t => t.id === id);
-    if (task) {
-      setTasks(tasks.filter(t => t.id !== id));
-      setArchivedTasks([...archivedTasks, task]);
-    }
-  };
 
-  const handleRestore = (id) => {
-    const task = archivedTasks.find(t => t.id === id);
-    if (task) {
-      setArchivedTasks(archivedTasks.filter(t => t.id !== id));
-      setTasks([...tasks, task]);
-    }
-  };
-
-  const handleDelete = (id) => {
-    // delete from archived (hard delete)
-    setArchivedTasks(archivedTasks.filter(t => t.id !== id));
-  };
-
-  const handleDeleteActive = (id) => {
-    // delete active task permanently
-    setTasks(tasks.filter(t => t.id !== id));
-  };
-
+  // Create a new task
   const handleCreate = ({ title, description, priority, dueDate, dueTime }) => {
-    const newTask = {
-      id: Date.now(),
+    axios.post(API_URL, {
       title,
       description,
       priority,
       status: 'Not Started',
       dueDate,
       dueTime
-    };
-    setTasks([newTask, ...tasks]);
+      // archived is intentionally omitted so it defaults to false
+    })
+    .then(() => fetchTasks())
+    .catch(err => console.error(err));
   };
 
-  // persist tasks and archivedTasks to localStorage when they change
-  useEffect(() => {
-    try {
-      localStorage.setItem('tasks', JSON.stringify(tasks));
-    } catch (e) {
-      // ignore storage errors
-    }
-  }, [tasks]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('archivedTasks', JSON.stringify(archivedTasks));
-    } catch (e) {
-      // ignore storage errors
-    }
-  }, [archivedTasks]);
-
+  // Update a task
   const handleUpdate = ({ title, description, priority, dueDate, dueTime }) => {
     if (!editTask) return;
-    setTasks(tasks.map(t =>
-      t.id === editTask.id ? { ...t, title, description, priority, dueDate, dueTime } : t
-    ));
-    setEditTask(null);
-    setIsModalOpen(false);
+    axios.patch(`${API_URL}/${editTask._id}`, {
+      title,
+      description,
+      priority,
+      dueDate,
+      dueTime
+    })
+    .then(() => {
+      fetchTasks();
+      setEditTask(null);
+      setIsModalOpen(false);
+    })
+    .catch(err => console.error(err));
+  };
+
+  // Archive (soft delete) a task
+  const handleArchive = (id) => {
+    axios.patch(`${API_URL}/${id}/archive`)
+      .then(() => fetchTasks())
+      .catch(err => console.error(err));
+  };
+
+  // Restore a task (move from archived to active)
+  const handleRestore = (id) => {
+    axios.patch(`${API_URL}/${id}`, { archived: false })
+      .then(() => fetchTasks())
+      .catch(err => console.error(err));
+  };
+
+  // Hard delete from archived
+  const handleDelete = (id) => {
+    axios.delete(`${API_URL}/${id}`)
+      .then(() => fetchTasks())
+      .catch(err => console.error(err));
+  };
+
+  // Hard delete active task
+  const handleDeleteActive = (id) => {
+    axios.delete(`${API_URL}/${id}`)
+      .then(() => fetchTasks())
+      .catch(err => console.error(err));
   };
 
   const handleEdit = (task) => {
@@ -173,14 +127,17 @@ const Dashboard = () => {
         onClose={() => setSidebarOpen(false)}
         onFilterStatus={(val) => {
           setFilterStatus(val === 'All' ? 'All' : val);
-          // if user selects Archived from sidebar, show archived view
           setShowArchived(val === 'Archived');
         }}
         onFilterPriority={(val) => {
           setFilterPriority(val === 'All' ? 'All' : val);
-          // selecting a priority should show active tasks
           setShowArchived(false);
         }}
+        allCount={tasks.length}
+        notStartedCount={tasks.filter(t => t.status === 'Not Started').length}
+        inProgressCount={tasks.filter(t => t.status === 'In Progress').length}
+        completedCount={tasks.filter(t => t.status === 'Completed').length}
+        archivedCount={archivedTasks.length}
       />
 
       {/* Main Content */}
@@ -214,7 +171,9 @@ const Dashboard = () => {
                   />
                 </div>
 
-                <button                  onClick={() => setIsModalOpen(true)}                  className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition-colors"
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition-colors"
                 >
                   <span className="text-lg font-bold">+</span>
                   <span className="text-sm font-medium">New Task</span>
@@ -324,8 +283,6 @@ const Dashboard = () => {
                   </button>
                 ))}
               </div>
-
-
             </div>
 
             {/* Tasks Grid/List */}
@@ -337,7 +294,7 @@ const Dashboard = () => {
               }`}>
                 {displayTasks.map(task => (
                   <TaskCard
-                    key={task.id}
+                    key={task._id}
                     task={task}
                     onEdit={handleEdit}
                     onArchive={showArchived ? handleRestore : handleArchive}

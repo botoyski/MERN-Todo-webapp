@@ -1,7 +1,17 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
-const Sidebar = ({ isOpen, onClose, onFilterStatus, onFilterPriority }) => {
+const Sidebar = ({
+  isOpen,
+  onClose,
+  onFilterStatus,
+  onFilterPriority,
+  allCount = 0,
+  notStartedCount = 0,
+  inProgressCount = 0,
+  completedCount = 0,
+  archivedCount = 0
+}) => {
   const [expandedSections, setExpandedSections] = useState({
     status: true,
     priority: true,
@@ -53,26 +63,27 @@ const Sidebar = ({ isOpen, onClose, onFilterStatus, onFilterPriority }) => {
                 <button onClick={() => onFilterStatus && onFilterStatus('All')} className="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 active:bg-blue-50 active:text-blue-600 font-medium">
                   <span className="text-lg">📋</span>
                   <span className="text-sm">All Tasks</span>
-                  <span className="ml-auto text-xs text-gray-400">12</span>
+                  <span className="ml-auto text-xs text-gray-400">{allCount}</span>
                 </button>
                 <button onClick={() => onFilterStatus && onFilterStatus('Not Started')} className="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
                   <span className="text-lg">⭕</span>
                   <span className="text-sm">Not Started</span>
-                  <span className="ml-auto text-xs text-gray-400">4</span>
+                  <span className="ml-auto text-xs text-gray-400">{notStartedCount}</span>
                 </button>
                 <button onClick={() => onFilterStatus && onFilterStatus('In Progress')} className="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
                   <span className="text-lg">⚡</span>
                   <span className="text-sm">In Progress</span>
-                  <span className="ml-auto text-xs text-gray-400">5</span>
+                  <span className="ml-auto text-xs text-gray-400">{inProgressCount}</span>
                 </button>
                 <button onClick={() => onFilterStatus && onFilterStatus('Completed')} className="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
                   <span className="text-lg">✅</span>
                   <span className="text-sm">Completed</span>
-                  <span className="ml-auto text-xs text-gray-400">3</span>
+                  <span className="ml-auto text-xs text-gray-400">{completedCount}</span>
                 </button>
                 <button onClick={() => onFilterStatus && onFilterStatus('Archived')} className="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
                   <span className="text-lg">📦</span>
                   <span className="text-sm">Archived</span>
+                  <span className="ml-auto text-xs text-gray-400">{archivedCount}</span>
                 </button>
               </nav>
             )}

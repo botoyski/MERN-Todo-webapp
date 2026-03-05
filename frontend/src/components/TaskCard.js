@@ -47,7 +47,7 @@ const TaskCard = ({ task, onEdit, onArchive, onDelete, isArchived = false }) => 
               </button>
               <button
                 onClick={() => {
-                  onArchive(task.id);
+                  onArchive(task._id);
                   setShowMenu(false);
                 }}
                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
@@ -56,7 +56,7 @@ const TaskCard = ({ task, onEdit, onArchive, onDelete, isArchived = false }) => 
               </button>
               <button
                 onClick={() => {
-                  onDelete(task.id);
+                  onDelete(task._id);
                   setShowMenu(false);
                 }}
                 className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
