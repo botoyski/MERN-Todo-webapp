@@ -117,6 +117,14 @@ const Dashboard = () => {
     setIsModalOpen(true);
   };
 
+  const handleStatusChange = (id, newStatus) => {
+  axios.patch(`${API_URL}/${id}`, {
+    status: newStatus
+  })
+  .then(() => fetchTasks())
+  .catch(err => console.error(err));
+};
+
   const displayTasks = showArchived ? archivedTasks : filteredTasks;
 
   return (
@@ -126,11 +134,19 @@ const Dashboard = () => {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         onFilterStatus={(val) => {
-          setFilterStatus(val === 'All' ? 'All' : val);
-          setShowArchived(val === 'Archived');
+          setFilterPriority('All'); // reset priority filter
+
+          if (val === 'Archived') {
+            setShowArchived(true);
+            setFilterStatus('All');
+          } else {
+            setShowArchived(false);
+            setFilterStatus(val);
+          }
         }}
         onFilterPriority={(val) => {
-          setFilterPriority(val === 'All' ? 'All' : val);
+          setFilterPriority(val);
+          setFilterStatus('All');
           setShowArchived(false);
         }}
         allCount={tasks.length}
@@ -293,14 +309,15 @@ const Dashboard = () => {
                   : 'grid-cols-1'
               }`}>
                 {displayTasks.map(task => (
-                  <TaskCard
-                    key={task._id}
-                    task={task}
-                    onEdit={handleEdit}
-                    onArchive={showArchived ? handleRestore : handleArchive}
-                    onDelete={showArchived ? handleDelete : handleDeleteActive}
-                    isArchived={showArchived}
-                  />
+                <TaskCard
+                  key={task._id}
+                  task={task}
+                  onEdit={handleEdit}
+                  onArchive={showArchived ? handleRestore : handleArchive}
+                  onDelete={showArchived ? handleDelete : handleDeleteActive}
+                  onStatusChange={handleStatusChange}
+                  isArchived={showArchived}
+                />
                 ))}
               </div>
             ) : (

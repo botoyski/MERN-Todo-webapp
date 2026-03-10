@@ -1,7 +1,7 @@
 import { MoreVertical, Trash2, Archive } from 'lucide-react';
 import { useState } from 'react';
 
-const TaskCard = ({ task, onEdit, onArchive, onDelete, isArchived = false }) => {
+const TaskCard = ({ task, onEdit, onArchive, onDelete, onStatusChange, isArchived = false }) => {
   const [showMenu, setShowMenu] = useState(false);
 
   const priorityColors = {
@@ -15,6 +15,8 @@ const TaskCard = ({ task, onEdit, onArchive, onDelete, isArchived = false }) => 
     'In Progress': 'bg-blue-100 text-blue-700',
     'Completed': 'bg-green-100 text-green-700'
   };
+
+  const statuses = ['Not Started', 'In Progress', 'Completed'];
 
   const priorityColor = priorityColors[task.priority] || priorityColors.Low;
 
@@ -76,9 +78,17 @@ const TaskCard = ({ task, onEdit, onArchive, onDelete, isArchived = false }) => 
         </span>
 
         {/* Status Badge */}
-        <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[task.status]}`}>
-          {task.status}
-        </span>
+        <select
+          value={task.status}
+          onChange={(e) => onStatusChange(task._id, e.target.value)}
+          className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer border-none outline-none ${statusColors[task.status]}`}
+        >
+          {statuses.map(status => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
 
         {/* Due Date and Time */}
         <div className="flex items-center gap-1 text-xs text-gray-600 ml-auto">
