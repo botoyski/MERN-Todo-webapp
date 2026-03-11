@@ -1,6 +1,6 @@
 const Task = require('../models/taskModel');
 
-// Get all tasks (supports archived filter)
+// get all tasks (supports archived filter)
 exports.getAllTasks = async (req, res) => {
   try {
     const archived = req.query.archived === 'true';
@@ -11,7 +11,7 @@ exports.getAllTasks = async (req, res) => {
   }
 };
 
-// Get a single task
+// get a single task
 exports.getTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -22,7 +22,7 @@ exports.getTask = async (req, res) => {
   }
 };
 
-// Create a new task
+// create a new task
 exports.createTask = async (req, res) => {
   try {
     const task = await Task.create(req.body);
@@ -32,7 +32,7 @@ exports.createTask = async (req, res) => {
   }
 };
 
-// Update a task
+// update a task
 exports.updateTask = async (req, res) => {
   try {
     const task = await Task.findByIdAndUpdate(
@@ -49,7 +49,7 @@ exports.updateTask = async (req, res) => {
   }
 };
 
-// Archive (soft delete) a task
+// archive (soft delete) a task
 exports.archiveTask = async (req, res) => {
   try {
     const task = await Task.findByIdAndUpdate(req.params.id, { archived: true }, { new: true });
@@ -60,7 +60,7 @@ exports.archiveTask = async (req, res) => {
   }
 };
 
-// Hard delete a task
+// hard delete a task
 exports.deleteTask = async (req, res) => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
