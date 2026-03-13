@@ -23,6 +23,8 @@ const Dashboard = () => {
 
   // Fetch tasks from backend
   const chrome = () => {
+  // fetch tasks from backend
+  const fetchTasks = () => {
     axios.get(API_URL)
       .then(res => setTasks(res.data))
       .catch(err => console.error(err));
@@ -35,13 +37,13 @@ const Dashboard = () => {
     fetchTasks();
   }, []);
 
-  // Calculate stats
+  // calculate stats
   const totalTasks = tasks.length;
   const notStarted = tasks.filter(t => t.status === 'Not Started').length;
   const inProgress = tasks.filter(t => t.status === 'In Progress').length;
   const completed = tasks.filter(t => t.status === 'Completed').length;
 
-  // Filter tasks
+  // filter tasks
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchValue.toLowerCase()) ||
                          (task.description || '').toLowerCase().includes(searchValue.toLowerCase());
@@ -51,7 +53,7 @@ const Dashboard = () => {
   });
 
 
-  // Create a new task
+  // create a new task
   const handleCreate = ({ title, description, priority, dueDate, dueTime }) => {
     axios.post(API_URL, {
       title,
@@ -66,7 +68,7 @@ const Dashboard = () => {
     .catch(err => console.error(err));
   };
 
-  // Update a task
+  // update a task
   const handleUpdate = ({ title, description, priority, dueDate, dueTime }) => {
     if (!editTask) return;
     axios.patch(`${API_URL}/${editTask._id}`, {
@@ -84,28 +86,28 @@ const Dashboard = () => {
     .catch(err => console.error(err));
   };
 
-  // Archive (soft delete) a task
+  // archive (soft delete) a task
   const handleArchive = (id) => {
     axios.patch(`${API_URL}/${id}/archive`)
       .then(() => fetchTasks())
       .catch(err => console.error(err));
   };
 
-  // Restore a task (move from archived to active)
+  // restore a task (move from archived to active)
   const handleRestore = (id) => {
     axios.patch(`${API_URL}/${id}`, { archived: false })
       .then(() => fetchTasks())
       .catch(err => console.error(err));
   };
 
-  // Hard delete from archived
+  // hard delete from archived
   const handleDelete = (id) => {
     axios.delete(`${API_URL}/${id}`)
       .then(() => fetchTasks())
       .catch(err => console.error(err));
   };
 
-  // Hard delete active task
+  // hard delete active task
   const handleDeleteActive = (id) => {
     axios.delete(`${API_URL}/${id}`)
       .then(() => fetchTasks())
