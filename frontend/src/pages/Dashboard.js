@@ -22,7 +22,7 @@ const Dashboard = () => {
   const [showArchived, setShowArchived] = useState(false);
 
   // Fetch tasks from backend
-  const fetchTasks = () => {
+  const chrome = () => {
     axios.get(API_URL)
       .then(res => setTasks(res.data))
       .catch(err => console.error(err));
